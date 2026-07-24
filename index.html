@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tide - Roblox Multi Account Manager</title>
+    <style>
+        :root {
+            --bg-color: #0c0813;
+            --card-bg: #140f22;
+            --accent-color: #00bcd4;
+            --accent-hover: #00e5ff;
+            --premium-color: #a855f7;
+            --premium-hover: #d8b4fe;
+            --text-color: #ffffff;
+            --text-muted: #94a3b8;
+            --success-color: #22c55e;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 50% 20%, rgba(168, 85, 247, 0.15) 0%, transparent 50%);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* --- ЭКРАН ПРИВЕТСТВИЯ (WELCOME SCREEN) --- */
+        #welcome-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 50% 50%, rgba(0, 188, 212, 0.1) 0%, transparent 60%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s ease;
+        }
+
+        #welcome-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(1.05);
+        }
+
+        .welcome-logo {
+            font-size: 4.5rem;
+            font-weight: 800;
+            letter-spacing: 4px;
+            color: #fff;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            animation: pulseGlow 3s infinite;
+        }
+
+        .welcome-logo span {
+            color: var(--accent-color);
+            text-shadow: 0 0 30px rgba(0, 188, 212, 0.6);
+        }
+
+        .welcome-subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Анимированное кольцо вокруг кнопки */
+        .enter-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 200px;
+            height: 200px;
+        }
+
+        .circle-glow {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px dashed rgba(168, 85, 247, 0.4);
+            border-radius: 50%;
+            animation: rotateCircle 15s linear infinite;
+        }
+
+        .enter-btn {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            background-color: var(--card-bg);
+            border: 2px solid var(--premium-color);
+            color: #fff;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .enter-btn:hover {
+            transform: scale(1.1);
+            border-color: var(--accent-color);
+            color: var(--accent-hover);
+            box-shadow: 0 0 30px rgba(0, 188, 212, 0.6);
+        }
+
+        @keyframes rotateCircle {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* АНИМАЦИИ */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulseGlow {
+            0% { text-shadow: 0 0 15px rgba(255,255,255,0.1); }
+            50% { text-shadow: 0 0 25px rgba(168, 85, 247, 0.4); }
+            100% { text-shadow: 0 0 15px rgba(255,255,255,0.1); }
+        }
+
+        /* ВЕРХНЯЯ ПАНЕЛЬ */
+        .top-bar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1500;
+        }
+
+        .top-btn {
+            background-color: var(--card-bg);
+            color: var(--text-muted);
+            border: 1px solid #3b2d54;
+            padding: 8px 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .top-btn:hover {
+            color: var(--premium-color);
+            border-color: var(--premium-color);
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* ЭКРАН ВЫБОРА ЯЗЫКА */
+        #lang-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        #lang-screen h2 { font-size: 2rem; margin-bottom: 30px; text-align: center; }
+        .lang-buttons { display: flex; gap: 20px; }
+        .lang-btn {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 2px solid #3b2d54;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .lang-btn:hover {
+            border-color: var(--premium-color);
+            transform: translateY(-4px);
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+            color: var(--premium-hover);
+        }
+
+        /* ОСНОВНОЙ КОНТЕНТ */
+        .container {
+            max-width: 900px;
+            width: 90%;
+            text-align: center;
+            padding: 40px 20px;
+            display: none;
+            opacity: 0;
+        }
+
+        .container.show {
+            display: block;
+            animation: fadeInUp 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        h1 { font-size: 2.7rem; margin-bottom: 10px; }
+        h1 span { color: var(--premium-color); text-shadow: 0 0 20px rgba(168, 85, 247, 0.6); }
+        .description { color: var(--text-muted); font-size: 1.1rem; margin-bottom: 40px; }
+
+        /* ТАРИФНЫЕ ПЛАНЫ */
+        .pricing-plans {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .plan-card {
+            background-color: var(--card-bg);
+            border: 2px solid #3b2d54;
+            border-radius: 20px;
+            padding: 40px 25px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            text-align: left;
+            position: relative;
+        }
+
+        .plan-card:hover { transform: translateY(-8px); }
+
+        .plan-card.plus:hover, .plan-card.plus.selected {
+            border-color: var(--premium-color);
+            box-shadow: 0 10px 35px rgba(168, 85, 247, 0.4), inset 0 0 15px rgba(168, 85, 247, 0.1);
+        }
+
+        .plan-card.premium:hover, .plan-card.premium.selected {
+            border-color: var(--accent-color);
+            box-shadow: 0 10px 35px rgba(0, 188, 212, 0.3);
+        }
+
+        .plan-badge {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .plus .plan-badge { background: rgba(168, 85, 247, 0.2); color: var(--premium-hover); }
+        .premium .plan-badge { background: rgba(0, 188, 212, 0.2); color: var(--accent-color); }
+
+        .plan-card h3 { font-size: 1.8rem; margin: 0 0 10px 0; font-weight: bold; }
+        .plus h3 { color: var(--premium-color); text-shadow: 0 0 10px rgba(168, 85, 247, 0.4); }
+        .premium h3 { color: var(--accent-color); text-shadow: 0 0 10px rgba(0, 188, 212, 0.3); }
+
+        .plan-price { font-size: 1.1rem; color: var(--text-muted); margin-bottom: 20px; }
+
+        .features-list { list-style: none; padding: 0; margin: 0 0 30px 0; }
+        .features-list li { margin-bottom: 12px; color: #e2e8f0; font-size: 0.95rem; display: flex; align-items: center; }
+        .features-list li::before { content: "✓"; margin-right: 10px; font-weight: bold; }
+        .plus li::before { color: var(--premium-color); text-shadow: 0 0 5px var(--premium-color); }
+        .premium li::before { color: var(--accent-color); }
+
+        .select-plan-btn {
+            width: 100%;
+            background: transparent;
+            border: 2px solid #3b2d54;
+            color: #fff;
+            padding: 14px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        .plus:hover .select-plan-btn, .plus.selected .select-plan-btn { 
+            background: var(--premium-color); border-color: var(--premium-color); color: #fff; box-shadow: 0 0 15px rgba(168, 85, 247, 0.6);
+        }
+        .premium:hover .select-plan-btn, .premium.selected .select-plan-btn { 
+            background: var(--accent-color); border-color: var(--accent-color); color: #000; box-shadow: 0 0 15px rgba(0, 188, 212, 0.5);
+        }
+
+        /* ВЫБОР ПЕРИОДА */
+        #duration-section { display: none; opacity: 0; margin-top: 30px; transition: all 0.4s ease; }
+        #duration-section.show { display: block; animation: fadeInUp 0.5s ease forwards; }
+        .duration-buttons { display: flex; justify-content: center; gap: 15px; margin-top: 15px; flex-wrap: wrap; }
+        .duration-btn {
+            background-color: var(--card-bg); color: #fff; border: 2px solid #3b2d54; padding: 12px 30px; font-size: 1rem; font-weight: bold; border-radius: 10px; cursor: pointer; transition: all 0.3s ease;
+        }
+        .duration-btn:hover { border-color: var(--premium-color); box-shadow: 0 0 10px rgba(168, 85, 247, 0.3); }
+        .duration-btn.active-plus { background-color: var(--premium-color); color: #fff; border-color: var(--premium-color); box-shadow: 0 0 15px rgba(168, 85, 247, 0.6); }
+        .duration-btn.active-premium { background-color: var(--accent-color); color: #000; border-color: var(--accent-color); box-shadow: 0 0 15px rgba(0, 188, 212, 0.5); }
+
+        /* МЕТОДЫ ОПЛАТЫ */
+        #payment-section { display: none; opacity: 0; margin-top: 40px; transition: all 0.4s ease; }
+        #payment-section.show { display: block; animation: fadeInUp 0.5s ease forwards; }
+        .payment-zones { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 25px; margin-top: 20px; }
+        .method-card { background-color: var(--card-bg); border: 1px solid #3b2d54; border-radius: 16px; padding: 35px 20px; transition: all 0.3s ease; cursor: pointer; text-align: center; }
+        .method-card h4 { margin: 0 0 10px 0; font-size: 1.3rem; }
+        .method-price { font-size: 2rem; font-weight: bold; color: var(--premium-color); margin: 15px 0; text-shadow: 0 0 10px rgba(168, 85, 247, 0.3); }
+        .method-btn { background-color: #3b2d54; color: #fff; border: none; padding: 12px 20px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; transition: all 0.3s; }
+        .method-card.hover-plus:hover { transform: translateY(-5px); border-color: var(--premium-color); box-shadow: 0 5px 20px rgba(168, 85, 247, 0.4); }
+        .method-card.hover-plus:hover .method-btn { background-color: var(--premium-color); color: #fff; box-shadow: 0 0 10px rgba(168, 85, 247, 0.5); }
+        .method-card.hover-premium:hover { transform: translateY(-5px); border-color: var(--accent-color); box-shadow: 0 5px 20px rgba(0, 188, 212, 0.3); }
+        .method-card.hover-premium:hover .method-btn { background-color: var(--accent-color); color: #000; }
+
+        /* МОДАЛЬНЫЕ ОКНА */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 3, 10, 0.85); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; z-index: 2000; opacity: 0; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal {
+            background-color: var(--card-bg); border: 2px solid var(--premium-color); border-radius: 20px; padding: 40px 30px; max-width: 450px; width: 85%; text-align: center; position: relative; box-shadow: 0 0 30px rgba(168, 85, 247, 0.3);
+        }
+        .requisites { background: #0c0813; border: 1px dashed #584182; padding: 15px; border-radius: 10px; font-size: 1.2rem; font-weight: bold; color: var(--premium-color); margin: 20px 0; word-break: break-all; animation: pulseGlow 3s infinite; text-shadow: 0 0 5px rgba(168, 85, 247, 0.5); }
+        .modal-btn { display: inline-block; background-color: var(--premium-color); color: #fff; border: none; padding: 14px 35px; font-weight: bold; border-radius: 8px; cursor: pointer; text-decoration: none; margin-top: 10px; transition: all 0.3s; box-shadow: 0 0 15px rgba(168, 85, 247, 0.4); }
+        .modal-btn:hover { background-color: #b975ff; box-shadow: 0 0 25px rgba(168, 85, 247, 0.7); transform: translateY(-2px); }
+        .close-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; color: var(--text-muted); font-size: 1.8rem; cursor: pointer; }
+        .close-btn:hover { color: #fff; }
+
+        .footer { margin-top: 60px; color: var(--text-muted); font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+    <!-- ЭКРАН ПРИВЕТСТВИЯ (WELCOME SCREEN) -->
+    <div id="welcome-screen">
+        <div class="welcome-logo">Tide<span>.</span></div>
+        <div class="welcome-subtitle">Multi Account Manager</div>
+        <div class="enter-container">
+            <div class="circle-glow"></div>
+            <button class="enter-btn" onclick="leaveWelcomeScreen()">Enter</button>
+        </div>
+    </div>
+
+    <!-- ВЕРХНЯЯ ПАНЕЛЬ С КНОПКАМИ -->
+    <div class="top-bar">
+        <button class="top-btn" id="lang-switch" onclick="resetLanguage()" style="display:none;">Language / Язык</button>
+    </div>
+
+    <!-- ЭКРАН ВЫБОРА ЯЗЫКА -->
+    <div id="lang-screen" style="display:none;">
+        <h2>Choose your language / Выберите язык</h2>
+        <div class="lang-buttons">
+            <button class="lang-btn" onclick="selectLanguage('en')">English</button>
+            <button class="lang-btn" onclick="selectLanguage('ru')">Русский</button>
+        </div>
+    </div>
+
+    <!-- ОСНОВНОЙ КОНТЕНТ (МАГАЗИН) -->
+    <div class="container" id="main-content">
+        <h1>Tide <span>Multi Account Manager</span></h1>
+        <p class="description" id="main-desc">Compare features and upgrade your plan to unlock unlimited automation.</p>
+
+        <!-- ТАРИФЫ -->
+        <div class="pricing-plans">
+            <div class="plan-card plus" id="card-plus" onclick="selectPlan('plus')">
+                <div class="plan-badge">Popular</div>
+                <h3>Plus</h3>
+                <div class="plan-price" id="plus-duration">From $0.99</div>
+                <ul class="features-list">
+                    <li id="p1-f1">8 Active Windows</li>
+                    <li id="p1-f2">100 Saved Accounts</li>
+                    <li id="p1-f3">Low-Resource Farm Mode</li>
+                    <li id="p1-f4">Auto-Rejoin & Anti-AFK</li>
+                </ul>
+                <button class="select-plan-btn" id="btn-select-plus">Choose Plus</button>
+            </div>
+
+            <div class="plan-card premium" id="card-premium" onclick="selectPlan('premium')">
+                <div class="plan-badge">Best Value</div>
+                <h3>Premium</h3>
+                <div class="plan-price" id="premium-duration">From $1.99</div>
+                <ul class="features-list">
+                    <li id="p2-f1">UNLIMITED Active Windows</li>
+                    <li id="p2-f2">UNLIMITED Saved Accounts</li>
+                    <li id="p2-f3">High-Density Multi-Instance</li>
+                    <li id="p2-f4">Priority Auto-Rejoin Daemon</li>
+                </ul>
+                <button class="select-plan-btn" id="btn-select-premium">Choose Premium</button>
+            </div>
+        </div>
+
+        <!-- ВЫБОР ПЕРИОДА -->
+        <div id="duration-section">
+            <h2 id="duration-title">Select Duration:</h2>
+            <div class="duration-buttons">
+                <button class="duration-btn" id="btn-time-1w" onclick="selectDuration('1w')">1 Week</button>
+                <button class="duration-btn" id="btn-time-1m" onclick="selectDuration('1m')">1 Month</button>
+                <button class="duration-btn" id="btn-time-life" onclick="selectDuration('lifetime')">Lifetime</button>
+            </div>
+        </div>
+
+        <!-- КНОПКИ ОПЛАТЫ -->
+        <div id="payment-section">
+            <h2 id="choose-payment-title">Select payment method:</h2>
+            <div class="payment-zones">
+                <div class="method-card" id="m-card" onclick="openPaymentModal('card')">
+                    <h4 id="m-card-title">Ukrainian Card</h4>
+                    <div class="method-price" id="price-card">0 ₴</div>
+                    <button class="method-btn" id="btn-text-card">Pay</button>
+                </div>
+                <div class="method-card" id="m-funpay" onclick="openPaymentModal('funpay')">
+                    <h4>FunPay</h4>
+                    <div class="method-price" id="price-funpay">0 ₴</div>
+                    <button class="method-btn" id="btn-text-funpay">Go to</button>
+                </div>
+                <div class="method-card" id="m-paypal" onclick="openPaymentModal('paypal')">
+                    <h4>PayPal</h4>
+                    <div class="method-price" id="price-paypal">$0.00</div>
+                    <button class="method-btn">Pay Now</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            &copy; 2026 Tide Software. All rights reserved.
+        </div>
+    </div>
+
+    <!-- МОДАЛКА С РЕКВИЗИТАМИ -->
+    <div class="modal-overlay" id="paymentModal" onclick="closeModal()">
+        <div class="modal" id="main-modal" onclick="event.stopPropagation()">
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+            <h3 id="modalTitle">Payment</h3>
+            <p id="modalText">Instructions</p>
+            <div class="requisites" id="modalRequisites">REQUISITES</div>
+            <a href="#" id="modalActionBtn" class="modal-btn" target="_blank">Confirm</a>
+        </div>
+    </div>
+
+    <script>
+        const translations = {
+            en: {
+                desc: "Compare features and upgrade your plan to unlock unlimited automation.",
+                choosePay: "Select payment method for ",
+                plusDur: "From $0.99",
+                premDur: "From $1.99",
+                btnPlus: "Choose Plus",
+                btnPrem: "Choose Premium",
+                cardTitle: "Ukrainian Card",
+                cardBtn: "Pay",
+                funpayBtn: "Go to",
+                durTitle: "Select plan duration:",
+                t_1w: "1 Week",
+                t_1m: "1 Month",
+                t_life: "Lifetime",
+                f_plus: ["8 Active Windows", "100 Saved Accounts", "Low-Resource Farm Mode", "Auto-Rejoin & Anti-AFK"],
+                f_prem: ["UNLIMITED Active Windows", "UNLIMITED Saved Accounts", "High-Density Multi-Instance", "Priority Auto-Rejoin Daemon"],
+                prices: {
+                    plus: {
+                        '1w': { card: "40 ₴", funpay: "45 ₴", paypal: "$0.99", label: "Plus (1 Week)" },
+                        '1m': { card: "80 ₴", funpay: "90 ₴", paypal: "$1.99", label: "Plus (1 Month)" },
+                        'lifetime': { card: "120 ₴", funpay: "135 ₴", paypal: "$2.99", label: "Plus (Lifetime)" }
+                    },
+                    premium: {
+                        '1w': { card: "80 ₴", funpay: "90 ₴", paypal: "$1.99", label: "Premium (1 Week)" },
+                        '1m': { card: "120 ₴", funpay: "135 ₴", paypal: "$2.99", label: "Premium (1 Month)" },
+                        'lifetime': { card: "200 ₴", funpay: "220 ₴", paypal: "$4.99", label: "Premium (Lifetime)" }
+                    }
+                },
+                config: {
+                    card: {
+                        title: "Payment via Ukrainian Card",
+                        text: "Transfer [PRICE] to Monobank card. Take a screenshot of the receipt and send it to @qwant1x on Telegram to activate your [PLAN] subscription.",
+                        requisites: "5375 4115 9081 2371 (Monobank)",
+                        btnText: "Send receipt to Telegram",
+                        btnLink: "https://t.me/qwant1x"
+                    },
+                    funpay: {
+                        title: "Purchase via FunPay",
+                        text: "Redirecting to FunPay. Buy [PLAN] from the list, pay, and we will send you the key in chat.",
+                        requisites: "Seller Profile: №13409509",
+                        btnText: "Go to FunPay profile",
+                        btnLink: "https://funpay.com/users/13409509/"
+                    },
+                    paypal: {
+                        title: "Payment via PayPal",
+                        text: "Send [PRICE] to PayPal via 'Friends and Family'. Add your Telegram username to notes, then message support @qwant1x on Telegram.",
+                        requisites: "PayPal username: Alex Hurnik",
+                        btnText: "Confirm payment in Telegram",
+                        btnLink: "https://t.me/qwant1x"
+                    }
+                }
+            },
+            ru: {
+                desc: "Сравните функции и улучшите свой тариф, чтобы разблокировать безлимитную автоматизацию.",
+                choosePay: "Выберите способ оплаты для ",
+                plusDur: "От $0.99",
+                premDur: "От $1.99",
+                btnPlus: "Выбрать Plus",
+                btnPrem: "Выбрать Premium",
+                cardTitle: "Украинская карта",
+                cardBtn: "Купить",
+                funpayBtn: "Перейти",
+                durTitle: "Выберите длительность:",
+                t_1w: "1 Неделя",
+                t_1m: "1 Месяц",
+                t_life: "Навсегда",
+                f_plus: ["8 Активных Окон", "100 Сохраненных Аккаунтов", "Режим фермы (Low-Resource)", "Auto-Rejoin & Anti-AFK"],
+                f_prem: ["БЕЗЛИМИТ Активных Окон", "БЕЗЛИМИТ Сохраненных Аккаунтов", "High-Density Multi-Instance", "Приоритетный Auto-Rejoin Daemon"],
+                prices: {
+                    plus: {
+                        '1w': { card: "40 ₴", funpay: "45 ₴", paypal: "$0.99", label: "Plus (1 Неделя)" },
+                        '1m': { card: "80 ₴", funpay: "90 ₴", paypal: "$1.99", label: "Plus (1 Месяц)" },
+                        'lifetime': { card: "120 ₴", funpay: "135 ₴", paypal: "$2.99", label: "Plus (Навсегда)" }
+                    },
+                    premium: {
+                        '1w': { card: "80 ₴", funpay: "90 ₴", paypal: "$1.99", label: "Premium (1 Неделя)" },
+                        '1m': { card: "120 ₴", funpay: "135 ₴", paypal: "$2.99", label: "Premium (1 Месяц)" },
+                        'lifetime': { card: "200 ₴", funpay: "220 ₴", paypal: "$4.99", label: "Premium (Навсегда)" }
+                    }
+                },
+                config: {
+                    card: {
+                        title: "Оплата на украинскую карту",
+                        text: "Переведите [PRICE] на указанную карту Monobank. Сделайте скриншот чека и отправьте в поддержку @qwant1x в Telegram для активации [PLAN].",
+                        requisites: "5375 4115 9081 2371 (Monobank)",
+                        btnText: "Отправить чек в Telegram",
+                        btnLink: "https://t.me/qwant1x"
+                    },
+                    funpay: {
+                        title: "Покупка через FunPay",
+                        text: "Вы будете перенаправлены на FunPay. Найдите в списке товаров [PLAN], оплатите, и мы скинем софт в чат.",
+                        requisites: "Профиль продавца: №13409509",
+                        btnText: "Перейти на профиль FunPay",
+                        btnLink: "https://funpay.com/users/13409509/"
+                    },
+                    paypal: {
+                        title: "Оплата через PayPal",
+                        text: "Отправьте [PRICE] на наш PayPal (тип 'Friends and Family'). Укажите свой Telegram ник в примечании и подтвердите в поддержке @qwant1x в Telegram.",
+                        requisites: "PayPal ник: Alex Hurnik",
+                        btnText: "Подтвердить оплату в Telegram",
+                        btnLink: "https://t.me/qwant1x"
+                    }
+                }
+            }
+        };
+
+        let currentLang = 'en';
+        let selectedPlan = '';
+        let selectedDuration = '';
+
+        // Функция выхода с экрана приветствия
+        function leaveWelcomeScreen() {
+            const welcome = document.getElementById('welcome-screen');
+            welcome.classList.add('fade-out');
+            
+            setTimeout(() => {
+                welcome.style.display = 'none';
+                
+                const savedLang = localStorage.getItem('tide_lang');
+                if (savedLang) {
+                    selectLanguage(savedLang);
+                } else {
+                    document.getElementById('lang-screen').style.display = 'flex';
+                }
+            }, 600);
+        }
+
+        // ДВИЖОК МАГАЗИНА
+        function selectLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('tide_lang', lang);
+
+            document.getElementById('main-desc').innerText = translations[lang].desc;
+            document.getElementById('plus-duration').innerText = translations[lang].plusDur;
+            document.getElementById('premium-duration').innerText = translations[lang].premDur;
+            document.getElementById('btn-select-plus').innerText = translations[lang].btnPlus;
+            document.getElementById('btn-select-premium').innerText = translations[lang].btnPrem;
+            document.getElementById('m-card-title').innerText = translations[lang].cardTitle;
+            document.getElementById('btn-text-card').innerText = translations[lang].cardBtn;
+            document.getElementById('btn-text-funpay').innerText = translations[lang].funpayBtn;
+            document.getElementById('duration-title').innerText = translations[lang].durTitle;
+            
+            document.getElementById('btn-time-1w').innerText = translations[lang].t_1w;
+            document.getElementById('btn-time-1m').innerText = translations[lang].t_1m;
+            document.getElementById('btn-time-life').innerText = translations[lang].t_life;
+
+            for(let i=1; i<=4; i++) {
+                document.getElementById(`p1-f${i}`).innerText = translations[lang].f_plus[i-1];
+                document.getElementById(`p2-f${i}`).innerText = translations[lang].f_prem[i-1];
+            }
+
+            hideSection('duration-section');
+            hideSection('payment-section');
+            document.getElementById('card-plus').classList.remove('selected');
+            document.getElementById('card-premium').classList.remove('selected');
+            resetDurationButtons();
+            selectedPlan = '';
+            selectedDuration = '';
+
+            document.getElementById('lang-screen').style.display = 'none';
+            const mainContent = document.getElementById('main-content');
+            const switchBtn = document.getElementById('lang-switch');
+
+            mainContent.style.display = 'block';
+            switchBtn.style.display = 'block';
+            setTimeout(() => mainContent.classList.add('show'), 50);
+        }
+
+        function resetLanguage() {
+            hideSection('duration-section');
+            hideSection('payment-section');
+            document.getElementById('card-plus').classList.remove('selected');
+            document.getElementById('card-premium').classList.remove('selected');
+            resetDurationButtons();
+            selectedPlan = '';
+            selectedDuration = '';
+
+            document.getElementById('main-content').classList.remove('show');
+            document.getElementById('main-content').style.display = 'none';
+            document.getElementById('lang-switch').style.display = 'none';
+            document.getElementById('lang-screen').style.display = 'flex';
+        }
+
+        function selectPlan(plan) {
+            selectedPlan = plan;
+            hideSection('payment-section');
+            resetDurationButtons();
+            selectedDuration = '';
+
+            document.getElementById('card-plus').classList.remove('selected');
+            document.getElementById('card-premium').classList.remove('selected');
+            document.getElementById(`card-${plan}`).classList.add('selected');
+
+            const cards = ['m-card', 'm-funpay', 'm-paypal'];
+            cards.forEach(c => {
+                const el = document.getElementById(c);
+                if(plan === 'plus') {
+                    el.classList.add('hover-plus');
+                    el.classList.remove('hover-premium');
+                } else {
+                    el.classList.add('hover-premium');
+                    el.classList.remove('hover-plus');
+                }
+            });
+
+            const durSection = document.getElementById('duration-section');
+            durSection.style.display = 'block';
+            setTimeout(() => durSection.classList.add('show'), 10);
+            durSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function selectDuration(duration) {
+            selectedDuration = duration;
+            resetDurationButtons();
+            
+            const activeClass = selectedPlan === 'plus' ? 'active-plus' : 'active-premium';
+            if(duration === '1w') document.getElementById('btn-time-1w').classList.add(activeClass);
+            if(duration === '1m') document.getElementById('btn-time-1m').classList.add(activeClass);
+            if(duration === 'lifetime') document.getElementById('btn-time-life').classList.add(activeClass);
+
+            const p = translations[currentLang].prices[selectedPlan][duration];
+            document.getElementById('price-card').innerText = p.card;
+            document.getElementById('price-funpay').innerText = p.funpay;
+            document.getElementById('price-paypal').innerText = p.paypal;
+
+            const prices = ['price-card', 'price-funpay', 'price-paypal'];
+            prices.forEach(prId => {
+                document.getElementById(prId).style.color = selectedPlan === 'plus' ? 'var(--premium-color)' : 'var(--accent-color)';
+                document.getElementById(prId).style.textShadow = selectedPlan === 'plus' ? '0 0 10px rgba(168, 85, 247, 0.4)' : '0 0 10px rgba(0, 188, 212, 0.3)';
+            });
+
+            document.getElementById('choose-payment-title').innerHTML = translations[currentLang].choosePay + `<span>${p.label}</span>:`;
+            const spanTitle = document.getElementById('choose-payment-title').querySelector('span');
+            spanTitle.style.color = selectedPlan === 'plus' ? 'var(--premium-color)' : 'var(--accent-color)';
+            spanTitle.style.textShadow = selectedPlan === 'plus' ? '0 0 10px rgba(168, 85, 247, 0.5)' : '0 0 10px rgba(0, 188, 212, 0.4)';
+
+            const paySection = document.getElementById('payment-section');
+            paySection.style.display = 'block';
+            setTimeout(() => paySection.classList.add('show'), 10);
+            paySection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function openPaymentModal(method) {
+            if (!selectedPlan || !selectedDuration) return;
+
+            const modalOverlay = document.getElementById('paymentModal');
+            const modal = document.getElementById('main-modal');
+            const data = translations[currentLang].config[method];
+            const pData = translations[currentLang].prices[selectedPlan][selectedDuration];
+
+            let modalText = data.text.replace('[PRICE]', pData.card).replace('[PLAN]', pData.label);
+            if(method === 'paypal') modalText = data.text.replace('[PRICE]', pData.paypal).replace('[PLAN]', pData.label);
+            if(method === 'funpay') modalText = data.text.replace('[PRICE]', pData.funpay).replace('[PLAN]', pData.label);
+
+            document.getElementById('modalTitle').innerText = data.title;
+            document.getElementById('modalText').innerText = modalText;
+            
+            const reqs = document.getElementById('modalRequisites');
+            reqs.innerText = data.requisites;
+            
+            const actionBtn = document.getElementById('modalActionBtn');
+            actionBtn.innerText = data.btnText;
+            actionBtn.href = data.btnLink;
+
+            if(selectedPlan === 'plus') {
+                modal.style.borderColor = 'var(--premium-color)';
+                modal.style.boxShadow = '0 0 35px rgba(168, 85, 247, 0.5)';
+                reqs.style.color = 'var(--premium-color)';
+                reqs.style.textShadow = '0 0 5px rgba(168, 85, 247, 0.5)';
+                actionBtn.style.backgroundColor = 'var(--premium-color)';
+                actionBtn.style.color = '#fff';
+                actionBtn.style.boxShadow = '0 0 15px rgba(168, 85, 247, 0.4)';
+            } else {
+                modal.style.borderColor = 'var(--accent-color)';
+                modal.style.boxShadow = '0 0 35px rgba(0, 188, 212, 0.4)';
+                reqs.style.color = 'var(--accent-color)';
+                reqs.style.textShadow = '0 0 5px rgba(0, 188, 212, 0.4)';
+                actionBtn.style.backgroundColor = 'var(--accent-color)';
+                actionBtn.style.color = '#000';
+                actionBtn.style.boxShadow = '0 0 15px rgba(0, 188, 212, 0.3)';
+            }
+
+            modalOverlay.style.display = 'flex';
+            setTimeout(() => modalOverlay.classList.add('active'), 10);
+        }
+
+        function closeModal() {
+            const modalOverlay = document.getElementById('paymentModal');
+            modalOverlay.classList.remove('active');
+            setTimeout(() => modalOverlay.style.display = 'none', 300);
+        }
+
+        function resetDurationButtons() {
+            const btns = ['btn-time-1w', 'btn-time-1m', 'btn-time-life'];
+            btns.forEach(b => {
+                document.getElementById(b).classList.remove('active-plus', 'active-premium');
+            });
+        }
+
+        function hideSection(id) {
+            const el = document.getElementById(id);
+            if(el) { el.classList.remove('show'); el.style.display = 'none'; }
+        }
+    </script>
+</body>
+</html>
